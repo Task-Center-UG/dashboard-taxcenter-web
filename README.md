@@ -1,29 +1,56 @@
 # Dashboard Tax Center Web
 
-Admin dashboard for Tax Center Gunadarma built with Next.js App Router. This app handles authenticated dashboard flows, role-based redirects, content management screens, and internal tools for the Tax Center team.
+Internal dashboard for Tax Center Gunadarma. This repository is used for admin and operational workflows, including authentication, content management, activity data, volunteer data, research data, service-related data, and role-based dashboard pages.
 
 ## Overview
 
-- Built with Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, and Axios.
-- Uses cookie-based client auth state and route protection in `proxy.ts`.
-- Rewrites `/api/:path*` to the staging backend at `https://stag.api.taxcenterug.com/api/:path*`.
-- Production deployment is designed for Docker on a VPS, with GitHub Actions building and deploying to the server.
+This dashboard is built with Next.js App Router and is intended to support internal team workflows. Access to private areas is handled in `proxy.ts`, while frontend requests are routed through `/api` rewrites so pages do not need to hardcode the API domain everywhere.
+
+Some important context for this app:
+
+- the landing page is available at `/`
+- the main internal areas are `/dashboard` and `/dashboard-tax-volunteers`
+- authentication pages live under `/auth/*`
+- full metadata is only applied to the landing page
+- the root app metadata is intentionally set to `noindex` because this is primarily an internal-facing application
+
+## Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- TanStack Query
+- Axios
+- Tiptap
+- React Hook Form + Zod
 
 ## Project Structure
 
 ```text
-app/          Route entry points and layouts
-components/   Shared UI and feature components
-constant/     Shared constants such as API base values and cookie keys
-hooks/        Reusable hooks
-lib/          Axios client, auth helpers, and utilities
-providers/    App-level providers
-public/       Static assets
-routes/       Route metadata/helpers
-proxy.ts      Auth and role-based routing guard
+app/
+  auth/
+  dashboard/
+  dashboard-tax-volunteers/
+components/
+constant/
+hooks/
+lib/
+providers/
+public/
+routes/
+proxy.ts
 ```
 
-## Local Development
+Current structure guidelines:
+
+- `app/**` contains routes and layouts
+- `components/**` contains feature and UI components
+- `lib/**` contains helpers, axios setup, auth cookie helpers, and SEO helpers
+- `constant/**` contains shared constants such as `API_BASE_URL`, `PROXY`, and cookie keys
+- `proxy.ts` handles redirects and role-based access control
+
+## Running Locally
 
 Install dependencies:
 
@@ -31,56 +58,152 @@ Install dependencies:
 npm install
 ```
 
-Run the development server:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Run a production build locally:
 
-## Scripts
+```bash
+npm run build
+npm run start
+```
 
-- `npm run dev` starts the development server
-- `npm run build` creates a production build
-- `npm run start` runs the production server
-- `npm run lint` runs ESLint
+## Environment Variable
+
+The dashboard currently uses:
+
+```env
+NEXT_PUBLIC_SITE_URL=https://dashboard.taxcenterug.com
+```
+
+This value is used for landing page metadata, especially:
+
+- canonical URL
+- Open Graph URL
+- Twitter card URL
+- `metadataBase`
+
+If the dashboard domain or subdomain changes, update this value and redeploy.
 
 ## API Behavior
 
-- Browser requests use `PROXY = "/api/v1"` from `constant/constant.ts`
-- Next.js rewrites `/api/:path*` to the staging API in `next.config.ts`
-- Media URLs are built from `API_BASE_URL = "https://stag.api.taxcenterug.com"`
+The dashboard still points to staging services.
 
-If the dashboard later needs to target production APIs, update these staging values before going live.
+The main places to check are:
 
-## VPS Deployment
+- `constant/constant.ts`
+- `next.config.ts`
 
-This repository includes:
+Current behavior:
 
-- `Dockerfile` for a multi-stage Next.js production image
-- `docker-compose.prod.yml` for the VPS runtime
-- `.github/workflows/docker-deploy.yml` for CI/CD via GitHub Actions
+- `API_BASE_URL = "https://stag.api.taxcenterug.com"`
+- `/api/:path*` is rewritten to `https://stag.api.taxcenterug.com/api/:path*`
 
-The production container is exposed on `127.0.0.1:3001` on the VPS host so it can run alongside the public website app without port conflicts.
+So even if the dashboard itself is deployed to a production VPS, the data flow is still tied to the staging API until production endpoints are introduced.
 
-Recommended VPS setup:
+## Metadata and OG Image
 
-1. Create the deploy directory:
-   ```bash
-   sudo mkdir -p /opt/dashboard-taxcenter-web
-   sudo chown -R <deploy-user>:<deploy-user> /opt/dashboard-taxcenter-web
-   ```
-2. Add GitHub Actions secrets:
-   - `VPS_HOST`
-   - `VPS_PORT`
-   - `VPS_USER`
-   - `VPS_SSH_KEY`
-   - `GHCR_USERNAME`
-   - `GHCR_TOKEN`
-3. Push to `main` to build and deploy automatically.
+Metadata helpers live in `lib/seo.ts`.
 
-## Notes
+The landing page `/` has full metadata:
 
-- The dashboard currently points to staging services and is best treated as a staging/internal environment until production endpoints are defined.
-- If a public domain is added later, place Nginx in front of the container and proxy the chosen subdomain/domain to `127.0.0.1:3001`.
+- title
+- description
+- canonical URL
+- Open Graph
+- Twitter card
+
+The dashboard uses:
+
+```text
+public/og_image.png
+```
+
+Internal dashboard pages are not intended for search indexing.
+
+## Deployment
+
+This repository is set up for VPS deployment on Hostinger using Docker and GitHub Actions.
+
+Deployment files:
+
+- `Dockerfile`
+- `docker-compose.prod.yml`
+- `.github/workflows/docker-deploy.yml`
+
+On the server, the dashboard runs separately from the public website:
+
+- deploy directory: `/opt/dashboard-taxcenter-web`
+- host port: `127.0.0.1:3001`
+
+This allows it to live alongside `taxcenter-web`, which uses port `3000`.
+
+## GitHub Actions Secrets
+
+This repo expects:
+
+- `VPS_HOST`
+- `VPS_PORT`
+- `VPS_USER`
+- `VPS_SSH_KEY`
+- `GHCR_USERNAME`
+- `GHCR_TOKEN`
+- `NEXT_PUBLIC_SITE_URL`
+
+## VPS Preparation
+
+Run this once on the server:
+
+```bash
+sudo mkdir -p /opt/dashboard-taxcenter-web
+sudo chown -R <deploy-user>:<deploy-user> /opt/dashboard-taxcenter-web
+```
+
+Also make sure:
+
+- the deploy user can log in over SSH
+- the deploy user is allowed to run Docker
+- internal host port `3001` is available
+
+## Post-Deploy Checks
+
+On the VPS:
+
+```bash
+cd /opt/dashboard-taxcenter-web
+docker compose -f docker-compose.prod.yml ps
+docker logs dashboard-taxcenter-web --tail 100
+curl http://127.0.0.1:3001
+```
+
+If you want to test it locally before wiring a domain, use an SSH tunnel:
+
+```bash
+ssh -L 3001:127.0.0.1:3001 -p 3190 <deploy-user>@<server-ip>
+```
+
+Then open:
+
+```text
+http://localhost:3001
+```
+
+## Domain and Reverse Proxy
+
+Once the dashboard subdomain points to the VPS, Nginx should proxy requests to:
+
+```text
+http://127.0.0.1:3001
+```
+
+SSL can be added afterward.
+
+## Notes for the Team
+
+- this dashboard still makes the most sense as an internal/staging-oriented app
+- when the dashboard domain changes, update `NEXT_PUBLIC_SITE_URL`
+- if the backend moves from staging to production, review both `next.config.ts` and `constant/constant.ts`
+- if the landing page changes significantly, its metadata should be reviewed as well

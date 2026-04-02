@@ -1,8 +1,14 @@
-"use client";
-
 import Link from "next/link";
 import { LayoutDashboard, LogIn } from "lucide-react";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Dashboard Tax Center Gunadarma",
+  description:
+    "Platform terintegrasi Tax Center Gunadarma untuk mengelola relawan, kegiatan, riset, dan layanan perpajakan secara efisien dan transparan.",
+});
 
 export default function Home() {
   return (

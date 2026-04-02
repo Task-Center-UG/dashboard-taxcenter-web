@@ -51,6 +51,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -83,7 +85,7 @@ jobs:
           script: |
             cd ${{ env.APP_DIR }}
             cat > .env.production <<'EOF'
-            # Add runtime environment variables here when the dashboard needs them.
+            NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }}
             EOF
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
             export IMAGE_NAME=${{ steps.prep.outputs.image_name }}
