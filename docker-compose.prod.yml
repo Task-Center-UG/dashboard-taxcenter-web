@@ -1,0 +1,9 @@
+services:
+  dashboard-taxcenter-web:
+    image: ${IMAGE_NAME:-ghcr.io/zidanindratama/taxcenter-dashboard-v2}:${IMAGE_TAG:-latest}
+    container_name: dashboard-taxcenter-web
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - "127.0.0.1:3001:3000"
