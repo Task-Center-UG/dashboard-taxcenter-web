@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   description:
     "Dashboard internal Tax Center Gunadarma untuk mengelola data, konten, dan layanan perpajakan secara terintegrasi.",
   applicationName: "Dashboard Tax Center Gunadarma",
+  icons: {
+    icon: [{ url: "/favicon.ico", type: "image/x-icon" }],
+    shortcut: "/favicon.ico",
+  },
   robots: {
     index: false,
     follow: false,
