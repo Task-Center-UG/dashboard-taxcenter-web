@@ -119,7 +119,7 @@ The landing page `/` has full metadata:
 The dashboard uses:
 
 ```text
-public/og_image.png
+public/og_image.jpg
 ```
 
 Internal dashboard pages are not intended for search indexing.

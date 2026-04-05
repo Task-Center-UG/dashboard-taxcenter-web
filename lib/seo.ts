@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_NAME = "Dashboard Tax Center Gunadarma";
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://dashboard.taxcenterug.com";
-export const DEFAULT_OG_IMAGE = "/og_image.png";
+export const DEFAULT_OG_IMAGE = "/og_image.jpg";
 
 type CreatePageMetadataInput = {
   title: string;
@@ -16,6 +16,10 @@ export function absoluteUrl(path = "/") {
   return new URL(path, SITE_URL).toString();
 }
 
+export function absoluteAssetUrl(path: string) {
+  return absoluteUrl(path);
+}
+
 export function createPageMetadata({
   title,
   description,
@@ -24,6 +28,7 @@ export function createPageMetadata({
 }: CreatePageMetadataInput): Metadata {
   const canonical = absoluteUrl(path);
   const fullTitle = `${title} | ${SITE_NAME}`;
+  const ogImage = absoluteAssetUrl(DEFAULT_OG_IMAGE);
 
   return {
     title,
@@ -39,9 +44,11 @@ export function createPageMetadata({
       siteName: SITE_NAME,
       images: [
         {
-          url: DEFAULT_OG_IMAGE,
+          url: ogImage,
+          secureUrl: ogImage,
           width: 1200,
           height: 630,
+          type: "image/jpeg",
           alt: title,
         },
       ],
@@ -50,7 +57,7 @@ export function createPageMetadata({
       card: "summary_large_image",
       title: fullTitle,
       description,
-      images: [DEFAULT_OG_IMAGE],
+      images: [ogImage],
     },
     robots: noIndex
       ? {
